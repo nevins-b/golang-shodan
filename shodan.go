@@ -6,11 +6,10 @@ import (
 	"net/http"
 )
 
-var Debug = false
-
 type Shodan struct {
 	client *http.Client
 	apiKey string
+	Debug  bool
 }
 
 func NewShodan(client *http.Client, apiKey string) *Shodan {
@@ -20,6 +19,7 @@ func NewShodan(client *http.Client, apiKey string) *Shodan {
 	return &Shodan{
 		client: client,
 		apiKey: apiKey,
+		Debug:  false,
 	}
 }
 
@@ -42,7 +42,7 @@ func (s Shodan) getURI(method string, uri string, params map[string]interface{})
 			req.Form.Add(key, params[key].(string))
 		}
 	}
-	if Debug {
+	if s.Debug {
 		fmt.Printf("Shodan request uri: %s", req.URL.String())
 	}
 	return req, nil
@@ -59,7 +59,10 @@ func (s Shodan) performRequest(request *http.Request) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	if s.Debug {
+		fmt.Printf("Status Code: %d\n", resp.StatusCode)
+		fmt.Printf("Response Body: %s\n", string(body))
+	}
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("Got response code %d with body %s", resp.StatusCode, string(body))
 	}
